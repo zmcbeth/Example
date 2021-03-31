@@ -19,6 +19,8 @@
                 
                 var errorsDetected: [String] = []
                 
+                var newItem: Bool = false
+                
                 for char in stringData {
                     
                     if char == " " {continue}
@@ -87,15 +89,24 @@
                         
                         delegateType = "paletteItemName"
                         parserStack = ""
-                        prevDelegateTypeValue = 0
+                        prevDelegateTypeValue = -1
+                        
                         if errorsDetected.count != 0 {errorsDetected.append("Expecting to have a complete item with name[type]{portmap} before begining the next item")}
                         print(errorsDetected)
                         errorsDetected = []
+                        
+                        newItem = true
                         
                     }
                     else {
                         parserStack += "\(char)"
                     }
+                    
+                    if newItem && prevDelegateTypeValue != -1 && parserStack.count == 0 && errorsDetected.count != 0 && errorsDetected[0] != "Name cannot be void" {
+                        errorsDetected.insert("Expecting a palette item name", at: 0)
+                    }
+                    
+                    if prevDelegateTypeValue != -1 {newItem = false}
                     
                 }
                 

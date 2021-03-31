@@ -10,13 +10,12 @@
                                           "Expecting a closing bracket",
                                           "Expecting an opening curly-bracket for the palette item's portmap",
                                           "Expecting a portmap",
-                                          "Expecting a closing curly-bracket the palette item's portmap",]
+                                          "Expecting a closing curly-bracket the palette item's portmap"]
                 
                 let errorDict: [String:Int] = ["paletteItemName":1,
                                                "paletteItemType":2,
                                                "paletteItem":4,
-                                               "paletteItemPortmap":5,
-                                               "paletteItemError":999]
+                                               "paletteItemPortmap":5]
                 
                 var errorsDetected: [String] = []
                 

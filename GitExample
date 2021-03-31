@@ -1,9 +1,8 @@
-	       
-
-	       var stringData = try String(contentsOf: pathway, encoding: .utf8)
+		let stringData = try String(contentsOf: pathway, encoding: .utf8)
                 
                 var parserStack: String = ""
                 var delegateType: String = "paletteItemName"
+                var prevDelegateTypeValue: Int = 0
                 
                 let errorArr: [String] = ["Expecting a palette item name",
                                           "Expecting an opening bracket",
@@ -17,7 +16,7 @@
                                                "paletteItemType":2,
                                                "paletteItem":4,
                                                "paletteItemPortmap":5,
-                                               "nextPaletteItemName":999]
+                                               "paletteItemError":999]
                 
                 var errorsDetected: [String] = []
                 
@@ -28,36 +27,58 @@
                     if char == "\n" {continue}
                     
                     if char == "[" {
+                        
+                        if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                        prevDelegateTypeValue = errorDict[delegateType]!
+                        
                         if delegateType != "paletteItemName" {
                             if errorDict[delegateType]! >= errorArr.count {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                             errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorArr.count]))
                         }
                         delegateType = "paletteItemType"
                         parserStack = ""
+                        
                     }
                     else if char == "]" {
+                        
+                        if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                        prevDelegateTypeValue = errorDict[delegateType]!
+                        
                         if delegateType != "paletteItemType" {
                             if errorDict[delegateType]! >= errorDict["paletteItemType"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                             errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItemType"]!]))
                         }
                         delegateType = "paletteItem"
                         parserStack = ""
+                        
                     }
                     else if char == "{" {
+                        
+                        if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                        prevDelegateTypeValue = errorDict[delegateType]!
+                        
                         if delegateType != "paletteItem" {
                             if errorDict[delegateType]! >= errorDict["paletteItem"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                             errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItem"]!]))
                         }
                         delegateType = "paletteItemPortmap"
                         parserStack = ""
+                        
                     }
                     else if char == "}" {
+                        
+                        if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                        prevDelegateTypeValue = errorDict[delegateType]!
+                        
                         if delegateType != "paletteItemPortmap" {
                             if errorDict[delegateType]! >= errorDict["paletteItemPortmap"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                             errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItemPortmap"]!]))
                         }
-                        delegateType = "nextPaletteItemName"
+                        
+                        delegateType = "paletteItemName"
                         parserStack = ""
+                        prevDelegateTypeValue = 0
+                        
                     }
                     else {
                         parserStack += "\(char)"
@@ -65,12 +86,4 @@
                     
                 }
                 
-                if delegateType != "nextPaletteItemName" {
-                    if errorDict[delegateType]! >= errorArr.count {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                    errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorArr.count]))
-                }
-                
                 print(errorsDetected)
-                
-                delegateType = "paletteItemName"
-                parserStack = ""

@@ -1,0 +1,76 @@
+	       
+
+	       var stringData = try String(contentsOf: pathway, encoding: .utf8)
+                
+                var parserStack: String = ""
+                var delegateType: String = "paletteItemName"
+                
+                let errorArr: [String] = ["Expecting a palette item name",
+                                          "Expecting an opening bracket",
+                                          "Expecting a palette item type",
+                                          "Expecting a closing bracket",
+                                          "Expecting an opening curly-bracket for the palette item's portmap",
+                                          "Expecting a portmap",
+                                          "Expecting a closing curly-bracket the palette item's portmap",]
+                
+                let errorDict: [String:Int] = ["paletteItemName":1,
+                                               "paletteItemType":2,
+                                               "paletteItem":4,
+                                               "paletteItemPortmap":5,
+                                               "nextPaletteItemName":999]
+                
+                var errorsDetected: [String] = []
+                
+                for char in stringData {
+                    
+                    if char == " " {continue}
+                    if char == "\t" {continue}
+                    if char == "\n" {continue}
+                    
+                    if char == "[" {
+                        if delegateType != "paletteItemName" {
+                            if errorDict[delegateType]! >= errorArr.count {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                            errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorArr.count]))
+                        }
+                        delegateType = "paletteItemType"
+                        parserStack = ""
+                    }
+                    else if char == "]" {
+                        if delegateType != "paletteItemType" {
+                            if errorDict[delegateType]! >= errorDict["paletteItemType"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                            errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItemType"]!]))
+                        }
+                        delegateType = "paletteItem"
+                        parserStack = ""
+                    }
+                    else if char == "{" {
+                        if delegateType != "paletteItem" {
+                            if errorDict[delegateType]! >= errorDict["paletteItem"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                            errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItem"]!]))
+                        }
+                        delegateType = "paletteItemPortmap"
+                        parserStack = ""
+                    }
+                    else if char == "}" {
+                        if delegateType != "paletteItemPortmap" {
+                            if errorDict[delegateType]! >= errorDict["paletteItemPortmap"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                            errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItemPortmap"]!]))
+                        }
+                        delegateType = "nextPaletteItemName"
+                        parserStack = ""
+                    }
+                    else {
+                        parserStack += "\(char)"
+                    }
+                    
+                }
+                
+                if delegateType != "nextPaletteItemName" {
+                    if errorDict[delegateType]! >= errorArr.count {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                    errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorArr.count]))
+                }
+                
+                print(errorsDetected)
+                
+                delegateType = "paletteItemName"
+                parserStack = ""

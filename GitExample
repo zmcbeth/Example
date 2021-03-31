@@ -30,10 +30,13 @@
                         if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                         prevDelegateTypeValue = errorDict[delegateType]!
                         
+                        if parserStack.count == 0 {errorsDetected.append("Name cannot be void")}
+                        
                         if delegateType != "paletteItemName" {
                             if errorDict[delegateType]! >= errorArr.count {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                             errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorArr.count]))
                         }
+                        
                         delegateType = "paletteItemType"
                         parserStack = ""
                         
@@ -43,10 +46,13 @@
                         if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                         prevDelegateTypeValue = errorDict[delegateType]!
                         
+                        if parserStack.count == 0 {errorsDetected.append("Type cannot be void")}
+                        
                         if delegateType != "paletteItemType" {
                             if errorDict[delegateType]! >= errorDict["paletteItemType"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                             errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItemType"]!]))
                         }
+                        
                         delegateType = "paletteItem"
                         parserStack = ""
                         
@@ -56,10 +62,13 @@
                         if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                         prevDelegateTypeValue = errorDict[delegateType]!
                         
+                        if parserStack.count != 0 {errorsDetected.append("Not expecting something between the type and portmap")}
+                        
                         if delegateType != "paletteItem" {
                             if errorDict[delegateType]! >= errorDict["paletteItem"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                             errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItem"]!]))
                         }
+                        
                         delegateType = "paletteItemPortmap"
                         parserStack = ""
                         
@@ -68,6 +77,8 @@
                         
                         if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                         prevDelegateTypeValue = errorDict[delegateType]!
+                        
+                        if parserStack.count == 0 {errorsDetected.append("Portmap cannot be void")}
                         
                         if delegateType != "paletteItemPortmap" {
                             if errorDict[delegateType]! >= errorDict["paletteItemPortmap"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}

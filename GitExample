@@ -62,7 +62,7 @@
                         if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
                         prevDelegateTypeValue = errorDict[delegateType]!
                         
-                        if parserStack.count != 0 {errorsDetected.append("Not expecting something between the type and portmap")}
+                        if parserStack.count != 0 && delegateType == "paletteItem" {errorsDetected.append("Not expecting something between the type and portmap")}
                         
                         if delegateType != "paletteItem" {
                             if errorDict[delegateType]! >= errorDict["paletteItem"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
@@ -88,12 +88,24 @@
                         delegateType = "paletteItemName"
                         parserStack = ""
                         prevDelegateTypeValue = 0
+                        if errorsDetected.count != 0 {errorsDetected.append("Expecting to have a complete item with name[type]{portmap} before begining the next item")}
+                        print(errorsDetected)
+                        errorsDetected = []
                         
                     }
                     else {
                         parserStack += "\(char)"
                     }
                     
+                }
+                
+                if delegateType != "paletteItemName" {
+                    
+                    if errorDict[delegateType]! >= errorArr.count {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
+                    errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorArr.count]))
+                    
+                    if parserStack.count != 0 {errorsDetected.append("Expecting to have a complete item with name[type]{portmap} before begining the next item")}
+                        
                 }
                 
                 print(errorsDetected)

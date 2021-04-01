@@ -1,122 +1,86 @@
-		let stringData = try String(contentsOf: pathway, encoding: .utf8)
+let stringData = try String(contentsOf: pathway, encoding: .utf8)
                 
                 var parserStack: String = ""
-                var delegateType: String = "paletteItemName"
-                var prevDelegateTypeValue: Int = 0
+                var step: Int = 0
+                var prevStep: Int = 0
                 
-                let errorArr: [String] = ["Expecting a palette item name",
-                                          "Expecting an opening bracket",
-                                          "Expecting a palette item type",
-                                          "Expecting a closing bracket",
-                                          "Expecting an opening curly-bracket for the palette item's portmap",
-                                          "Expecting a portmap",
-                                          "Expecting a closing curly-bracket the palette item's portmap"]
-                
-                let errorDict: [String:Int] = ["paletteItemName":1,
-                                               "paletteItemType":2,
-                                               "paletteItem":4,
-                                               "paletteItemPortmap":5]
+                let errorArr: [String] = ["Expecting a non-void name",//----------------------------| 0 |
+                                          "Expecting an opening bracket before type",//-------------| 1 |
+                                          "Expecting a non-void type",//----------------------------| 2 |
+                                          "Expecting a closing bracket after type",//---------------| 3 |
+                                          "Expecting an opening curly-bracket before portmap",//----| 4 |
+                                          "Expecting a non-void portmap",//-------------------------| 5 |
+                                          "Expecting a closing curly-bracket after portmap"]//------| 6 |
                 
                 var errorsDetected: [String] = []
                 
-                var newItem: Bool = false
-                
                 for char in stringData {
                     
-                    if char == " " {continue}
-                    if char == "\t" {continue}
-                    if char == "\n" {continue}
-                    
-                    if char == "[" {
+                    while 1 == 1 {
                         
-                        if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                        prevDelegateTypeValue = errorDict[delegateType]!
+                        if char == " "  {continue}
+                        if char == "\t" {continue}
+                        if char == "\n" {continue}
                         
-                        if parserStack.count == 0 {errorsDetected.append("Name cannot be void")}
+                        prevStep = step
                         
-                        if delegateType != "paletteItemName" {
-                            if errorDict[delegateType]! >= errorArr.count {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                            errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorArr.count]))
+                        if char == "[" {
+                            
+                            parserStack = ""
+                            
+                            if step == 1 {step += 1}
+                            
+                        }
+                        else if char == "]" {
+                            
+                            if step == 3 {step += 1}
+                            
+                        }
+                        else if char == "{" {
+                            
+                            parserStack = ""
+                            
+                            if step == 4 {step += 1}
+                            
+                        }
+                        else if char == "}" {
+                            
+                            parserStack = ""
+                            
+                            if step == 6 {step += 1; break}
+                            
+                        }
+                        else {
+                            
+                            if step == 0 {step += 1}
+                            
+                            if step == 2 {step += 1}
+                            
+                            if step == 5 {step += 1}
+                            
+                            parserStack += "\(char)"
+                            
                         }
                         
-                        delegateType = "paletteItemType"
-                        parserStack = ""
+                        if step == 7 {parserStack = ""; step = 0; print(errorsDetected); errorsDetected = []}
+                        
+                        else if step == prevStep {errorsDetected.append(errorArr[step]); step += 1}
+                        else {break}
                         
                     }
-                    else if char == "]" {
-                        
-                        if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                        prevDelegateTypeValue = errorDict[delegateType]!
-                        
-                        if parserStack.count == 0 {errorsDetected.append("Type cannot be void")}
-                        
-                        if delegateType != "paletteItemType" {
-                            if errorDict[delegateType]! >= errorDict["paletteItemType"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                            errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItemType"]!]))
-                        }
-                        
-                        delegateType = "paletteItem"
-                        parserStack = ""
-                        
-                    }
-                    else if char == "{" {
-                        
-                        if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                        prevDelegateTypeValue = errorDict[delegateType]!
-                        
-                        if parserStack.count != 0 && delegateType == "paletteItem" {errorsDetected.append("Not expecting something between the type and portmap")}
-                        
-                        if delegateType != "paletteItem" {
-                            if errorDict[delegateType]! >= errorDict["paletteItem"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                            errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItem"]!]))
-                        }
-                        
-                        delegateType = "paletteItemPortmap"
-                        parserStack = ""
-                        
-                    }
-                    else if char == "}" {
-                        
-                        if prevDelegateTypeValue >= errorDict[delegateType]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                        prevDelegateTypeValue = errorDict[delegateType]!
-                        
-                        if parserStack.count == 0 {errorsDetected.append("Portmap cannot be void")}
-                        
-                        if delegateType != "paletteItemPortmap" {
-                            if errorDict[delegateType]! >= errorDict["paletteItemPortmap"]! {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                            errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorDict["paletteItemPortmap"]!]))
-                        }
-                        
-                        delegateType = "paletteItemName"
-                        parserStack = ""
-                        prevDelegateTypeValue = -1
-                        
-                        if errorsDetected.count != 0 {errorsDetected.append("Expecting to have a complete item with name[type]{portmap} before begining the next item")}
-                        print(errorsDetected)
-                        errorsDetected = []
-                        
-                        newItem = true
-                        
-                    }
-                    else {
-                        parserStack += "\(char)"
-                    }
-                    
-                    if newItem && prevDelegateTypeValue != -1 && parserStack.count == 0 && errorsDetected.count != 0 && errorsDetected[0] != "Name cannot be void" {
-                        errorsDetected.insert("Expecting a palette item name", at: 0)
-                    }
-                    
-                    if prevDelegateTypeValue != -1 {newItem = false}
                     
                 }
                 
-                if delegateType != "paletteItemName" {
+                if step != 7 && step != 1 {
                     
-                    if errorDict[delegateType]! >= errorArr.count {print("Incorrect order, expecting name[type]{portmap}"); spamLock = true; return}
-                    errorsDetected.append(contentsOf: (errorArr[errorDict[delegateType]!..<errorArr.count]))
+                    for i in step...6 {
                     
-                    if parserStack.count != 0 {errorsDetected.append("Expecting to have a complete item with name[type]{portmap} before begining the next item")}
+                        errorsDetected.append(errorArr[i])
                         
+                    }
+                    
+                    print(errorsDetected)
+                    
                 }
                 
-                print(errorsDetected)
+                else {print(errorsDetected)}

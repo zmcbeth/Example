@@ -115,6 +115,7 @@
                 if step != errorArr.count {
                     
                     for i in step..<errorArr.count {errorsDetected.append(errorArr[i])}
+                    errorDetected = true
                     
                 }
                 
